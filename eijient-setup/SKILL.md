@@ -1,7 +1,9 @@
 ---
 name: eijient-setup
 description: >
-  新しいプロジェクトや新しいマシンで eijient を使うための環境セットアップを行うSkill。
+  新しいプロジェクトや新しいマシンで開発環境をセットアップするSkill。
+  「新しいプロジェクトを始めたい」「新しいマシンにセットアップしたい」「CLAUDE.mdを作りたい」
+  「eijientの設定をしたい」のように環境構築・初期設定を依頼されたときに使う。
   ~/.claude/settings.json の設定と、プロジェクトの CLAUDE.md を対話的に生成する。
 ---
 
@@ -12,7 +14,8 @@ description: >
 このSkillは以下を自動で行います：
 
 1. `~/.claude/settings.json` に必要な設定を追加
-2. プロジェクト情報をヒアリングして `CLAUDE.md` を生成
+2. Playwright MCP の追加（`@eijient-e2e` を使う場合）
+3. プロジェクト情報をヒアリングして `CLAUDE.md` を生成
 
 ---
 
@@ -63,6 +66,33 @@ which tmux
 
 不足している場合はインストール方法をユーザーに案内する（自動インストールはしない）。
 
+### Step 2.5: Playwright MCP の追加（@eijient-e2e を使う場合）
+
+Step 3のヒアリングで `@eijient-e2e` を使うと答えた場合のみ実行する。
+
+まず既に追加済みか確認する：
+
+```bash
+claude mcp list
+```
+
+出力に `playwright` が含まれていない場合は自動で追加する：
+
+```bash
+claude mcp add playwright npx @playwright/mcp@latest
+```
+
+**注意：** `claude mcp add` はClaude Codeのセッション外コマンドのため、以下のいずれかで実行する：
+
+- Bash ツールで実行（Claude Code内から呼び出せる場合）
+- 実行できない場合はユーザーに「新しいターミナルで以下を実行してください」と案内する
+
+```bash
+claude mcp add playwright npx @playwright/mcp@latest
+```
+
+追加後は **Claude Codeの再起動が必要** なことをユーザーに伝える。
+
 ### Step 3: CLAUDE.md のヒアリング
 
 カレントディレクトリに `CLAUDE.md` が存在するか確認する。
@@ -89,6 +119,10 @@ which tmux
 8. ディレクトリ構成を教えてください
    （例: src/app, src/components, src/api, src/lib）
    ※わからない場合は「スキップ」と答えてください
+9. @eijient（Agent Teamによる開発自動化）を使いますか？
+   （yes / no）
+10. @eijient-e2e（Playwright MCPによるE2Eテスト）を使いますか？
+    （yes / no）
 ```
 
 ### Step 4: CLAUDE.md の生成
@@ -99,47 +133,59 @@ which tmux
 # {プロジェクト名}
 
 ## プロジェクト概要
+
 - {何を作るか}
 - ターゲット: {ターゲットユーザー}
 
 ## 技術スタック
+
 {フロントエンドがある場合}
+
 - Frontend: {フロントエンドスタック}
-{バックエンドがある場合}
+  {バックエンドがある場合}
 - Backend: {バックエンドスタック}
-{DBがある場合}
+  {DBがある場合}
 - DB: {DBスタック}
-{認証がある場合}
+  {認証がある場合}
 - 認証: {認証スタック}
 
 ## ディレクトリ構成
+
 {ディレクトリ構成をツリー形式で記載}
 {スキップした場合はこのセクションを省略}
 
 ## 開発ルール
+
 - コードのコメントは日本語
 - ターミナルのログ出力は日本語
 - 変数名・関数名は英語
 - コミットメッセージは英語（例: feat: add login feature）
 
 ## 開発フロー
+
 - 実装前にGitHub Issueを作成する
 - ブランチ名: feature/issue-{番号}-{説明}
 - 実装完了後にPRを作成してユーザーに報告・停止
 - マージはユーザーが行う（自分でマージしない）
 
+{@eijientを使う場合のみ以下のセクションを追加}
+
 ## @eijient 利用ルール
+
 - 機能実装は @eijient を使う
 - Agent Team利用時はTeam LeadのみGitHub操作を行う
 - WorkerはコードとテストのみでGitHub操作はしない
 - PRを作成したら必ず停止してユーザーに報告する
 
 ## やってはいけないこと
+
 - git push --force
 - mainへの直接push
 - PRのマージ
 - .envファイルのコミット
 ```
+
+**`@eijient 利用ルール` セクションは、Step 3の質問9で「yes」と答えた場合のみ生成する。**
 
 ### Step 5: 完了報告
 
@@ -157,10 +203,18 @@ which tmux
 - gh CLI: {確認結果}
 - tmux: {確認結果}
 
+【Playwright MCP】
+- {追加済み / スキップ / 要再起動} ✓
+
 【CLAUDE.md】
 - {生成済み or スキップ} ✓
 
+{@eijientを使う場合}
 @eijient を使って開発を始められます！
+{@eijient-e2eを使う場合}
+@eijient-e2e でE2Eテストができます！（要Claude Code再起動）
+{どちらも使わない場合}
+通常の開発を始められます！
 ```
 
 ---
@@ -182,10 +236,11 @@ which tmux
 
 ## 引数
 
-| 引数 | 説明 |
-|-----|-----|
+| 引数               | 説明                                               |
+| ------------------ | -------------------------------------------------- |
 | `--claude-md-only` | CLAUDE.mdの生成のみ行う（settings.jsonはスキップ） |
-| `--settings-only` | settings.jsonの設定のみ行う（CLAUDE.mdはスキップ） |
+| `--settings-only`  | settings.jsonの設定のみ行う（CLAUDE.mdはスキップ） |
+| `--with-e2e`       | ヒアリングなしでPlaywright MCPを追加する           |
 
 ---
 
@@ -194,3 +249,5 @@ which tmux
 - settings.json の既存設定は上書きしない（マージのみ）
 - CLAUDE.md の生成前に必ず上書き確認を行う
 - gh CLI の認証・tmux のインストールは手動で行うよう案内する（自動インストールはしない）
+- `@eijient 利用ルール` セクションはユーザーが @eijient を使うと答えた場合のみ生成する
+- Playwright MCP 追加後は Claude Code の再起動が必要なことを必ず伝える

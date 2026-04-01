@@ -1,9 +1,10 @@
 ---
 name: eijient
 description: >
-  プロジェクトの規模を自動判定し、最適なAgent Teamを編成して開発を進めるSkill。
-  Plannerは常に1体配置し、プロジェクト規模に応じてWorkerの数を動的に決定する。
-  GitHub IssueとPRの作成も自動で行う。
+  機能実装・バグ修正・リファクタなど、開発タスクをAgent Teamで自動実行するSkill。
+  「〜を実装して」「〜を修正して」「〜をリファクタして」のように開発作業を依頼されたときに使う。
+  GitHub Issue・ブランチ・PRの作成まで自動で行い、マージはユーザーに委ねる。
+  @eijient と明示するか、実装・修正・リファクタなどの開発作業を依頼されたときに起動する。
 ---
 
 # Agent Team Builder Skill
@@ -25,20 +26,20 @@ description: >
 
 ユーザーのリクエストを分析し、以下の基準でスケールを判定する：
 
-| スケール | 判定基準 | Planner | Workers |
-|--------|--------|---------|---------|
-| **small** | 単一機能・単一ファイル変更・バグ修正 | 1 (opus) | 1 (sonnet) |
-| **medium** | 複数ファイル・複数レイヤー・新機能実装 | 1 (opus) | 2〜3 (sonnet) |
-| **large** | 複数機能・フルスタック・大規模リファクタ | 1 (opus) | 3〜5 (sonnet) |
+| スケール   | 判定基準                                 | Planner  | Workers       |
+| ---------- | ---------------------------------------- | -------- | ------------- |
+| **small**  | 単一機能・単一ファイル変更・バグ修正     | 1 (opus) | 1 (sonnet)    |
+| **medium** | 複数ファイル・複数レイヤー・新機能実装   | 1 (opus) | 2〜3 (sonnet) |
+| **large**  | 複数機能・フルスタック・大規模リファクタ | 1 (opus) | 3〜5 (sonnet) |
 
 判定に迷う場合は **medium** をデフォルトとする。
 
 ### Step 2: チーム構成の決定
 
-規模に応じてWorkerの専門領域を分割する。
-参考: `references/templates.md`
+規模に応じてWorkerの専門領域を分割する。参考: `references/templates.md`
 
 各Workerには以下を必ず定義する：
+
 - 役割名（例: `frontend-dev`, `backend-dev`, `tester`）
 - 担当ファイル所有権（例: `src/app/**`）
 - 使用モデル（原則 sonnet）
@@ -69,7 +70,7 @@ git checkout -b feature/issue-{番号}-{短い説明}
 
 ### Step 5: Agent Teamのspawn
 
-以下のプロンプト形式でAgent Teamを起動する：
+以下のプロンプト形式でAgent Teamを起動する（テンプレートは `references/prompts.md` 参照）：
 
 ```
 チームを使って以下を実装してください。
@@ -79,7 +80,7 @@ git checkout -b feature/issue-{番号}-{短い説明}
 
 ## チーム構成
 - planner (opus): 設計・タスク分解・統合担当。実装前に設計を立て全Workerに共有する
-{各Workerの定義（参考: references/prompts.md）}
+{各Workerの定義}
 
 ## ルール
 - plannerが設計を完了してから各Workerは実装を開始すること
@@ -87,22 +88,48 @@ git checkout -b feature/issue-{番号}-{短い説明}
 - Worker間で必要な情報はメッセージで直接やりとりすること
 - 完了したら必ずTeam Leadに報告すること
 - GitHub操作（Issue/PR）はTeam Leadのみが行う
+- 各WorkerはStep完了ごとに進捗を報告すること（タイムアウト検知のため）
 
 ## ファイル所有権
 {各Workerの担当ファイルパス}
 ```
 
-Spawn Promptのテンプレートは `references/prompts.md` を参照。
+### Step 6: Worker監視・タイムアウト対応
 
-### Step 6: 実装完了後のPR作成
+Workerのspawn後、**15分以内に進捗報告がないWorkerは停止している可能性がある**。
 
-全Workerの完了報告を受けたら：
+以下の順で対応する：
+
+1. **確認**: 該当Workerに「進捗を報告してください」と送信する
+2. **警告**: 5分待っても反応がなければユーザーに以下を報告する：
+
+   ```
+   ⚠️ Worker ({役割名}) から応答がありません。
+   - 最後の進捗: {最後の報告内容}
+   - 経過時間: 約{N}分
+
+   選択してください：
+   1. もう少し待つ
+   2. そのWorkerをスキップしてPRを作成する
+   3. セッションを終了して手動で確認する
+   ```
+
+3. **エスカレーション**: ユーザーの指示に従い、スキップ or 待機 or 終了する
+
+**Workerが完了報告した場合でも、担当ファイルへの変更が実際にコミットされているか確認する：**
+
+```bash
+git diff --name-only HEAD
+```
+
+### Step 7: 実装完了後のPR作成
+
+全Workerの完了報告 + ファイル変更の確認後：
 
 ```bash
 git add .
 git commit -m "feat: #{Issue番号} {機能名}"
 git push origin feature/issue-{番号}-{短い説明}
-
 gh pr create \
   --title "feat: #{Issue番号} {機能名}" \
   --body "## 概要
@@ -117,7 +144,7 @@ gh pr create \
 Closes #{Issue番号}"
 ```
 
-### Step 7: ユーザーへの報告・停止
+### Step 8: ユーザーへの報告・停止
 
 PR作成後、必ずユーザーに以下を報告して停止する：
 
@@ -138,22 +165,22 @@ PRをご確認の上、マージをお願いします。
 
 ## 引数
 
-| 引数 | 短縮 | デフォルト | 説明 |
-|-----|-----|---------|-----|
-| `--scale` | `-s` | auto | チームスケール: small / medium / large / auto |
-| `--model` | `-m` | adaptive | モデル戦略: deep / adaptive / fast / budget |
-| `--plan-approval` | `-p` | false | Workerの実装前にPlannerの設計承認を要求 |
-| `--dry-run` | `-d` | false | チーム構成の確認のみ（spawnしない） |
-| `--no-issue` | | false | GitHub Issue作成をスキップ |
+| 引数              | 短縮 | デフォルト | 説明                                          |
+| ----------------- | ---- | ---------- | --------------------------------------------- |
+| `--scale`         | `-s` | auto       | チームスケール: small / medium / large / auto |
+| `--model`         | `-m` | adaptive   | モデル戦略: deep / adaptive / fast / budget   |
+| `--plan-approval` | `-p` | false      | Workerの実装前にPlannerの設計承認を要求       |
+| `--dry-run`       | `-d` | false      | チーム構成の確認のみ（spawnしない）           |
+| `--no-issue`      |      | false      | GitHub Issue作成をスキップ                    |
 
 ### モデル戦略
 
-| 戦略 | Planner | Worker | 用途 |
-|-----|---------|--------|-----|
-| `deep` | opus | opus | 最高品質が必要な複雑タスク |
-| `adaptive` | opus | sonnet | 品質とコストのバランス（推奨） |
-| `fast` | sonnet | sonnet | 速度重視・明確なタスク |
-| `budget` | sonnet | haiku | シンプルなタスク・コスト重視 |
+| 戦略       | Planner | Worker | 用途                           |
+| ---------- | ------- | ------ | ------------------------------ |
+| `deep`     | opus    | opus   | 最高品質が必要な複雑タスク     |
+| `adaptive` | opus    | sonnet | 品質とコストのバランス（推奨） |
+| `fast`     | sonnet  | sonnet | 速度重視・明確なタスク         |
+| `budget`   | sonnet  | haiku  | シンプルなタスク・コスト重視   |
 
 ---
 
@@ -206,11 +233,12 @@ PRをご確認の上、マージをお願いします。
 
 - Team Leadは全Workerの完了報告を確認してから次のStepに進む
 - Workerを待たずに自分で実装を始めてしまう場合は明示的に制止する
+- 完了報告後は `git diff --name-only HEAD` で実際の変更を必ず確認する
 
 ### 監視とリダイレクト
 
 - うまくいっていないアプローチを取るWorkerには早めにフィードバックを送る
-- チームを長時間放置すると無駄な作業が蓄積するリスクが上がる
+- **15分応答なし → Step 6のタイムアウト手順を実行する**
 
 ---
 

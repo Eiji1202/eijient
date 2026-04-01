@@ -6,12 +6,22 @@ Claude Code用のオリジナルSkill集。
 
 ### @eijient
 
-プロジェクトの規模を自動判定し、最適なAgent Teamを編成して開発を進めるSkill。
+機能実装・バグ修正・リファクタなど、開発タスクをAgent Teamで自動実行するSkill。
 
 - Plannerは常に1体（opus）
 - Worker数はタスク規模に応じて自動判定（1〜5体）
 - GitHub Issue作成・ブランチ作成・PR作成まで自動
+- Workerが無応答の場合はタイムアウト検知してユーザーに報告
 - PRマージはユーザーが行う
+
+### @eijient-e2e
+
+Playwright MCPを使ってブラウザを直接操作し、E2Eテストを実行するSkill。
+
+- テストコード不要でブラウザを操作して動作確認
+- `--save` オプションで操作内容をPlaywrightテストコード（.spec.ts）として保存
+- コンソールエラー・ネットワークリクエストも同時に検証
+- 要Playwright MCP（`claude mcp add playwright npx @playwright/mcp@latest`）
 
 ### @eijient-setup
 
@@ -19,6 +29,7 @@ Claude Code用のオリジナルSkill集。
 
 - `~/.claude/settings.json` の設定を自動追加
 - 対話形式でプロジェクトの `CLAUDE.md` を生成
+- `@eijient` を使うかどうかを選択でき、使う場合のみ関連ルールをCLAUDE.mdに追記
 
 ## インストール
 
@@ -29,6 +40,16 @@ git clone https://github.com/Eiji1202/eijient.git ~/.claude/skills/
 これだけで `@eijient` と `@eijient-setup` が使えるようになります。
 
 ## 使い方
+
+### E2Eテスト実行
+
+```bash
+# ブラウザで動作確認
+@eijient-e2e ログイン画面を確認して
+
+# テストコードも保存
+@eijient-e2e --url http://localhost:3000/login --save ログインフローをテストして
+```
 
 ### 新しいマシンのセットアップ
 

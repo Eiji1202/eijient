@@ -23,6 +23,15 @@ Playwright MCPを使ってブラウザを直接操作し、E2Eテストを実行
 - コンソールエラー・ネットワークリクエストも同時に検証
 - 要Playwright MCP（`claude mcp add playwright npx @playwright/mcp@latest`）
 
+### @eijient-refacta
+
+コードベースを分析してリファクタリング指示書（`refactor-instructions.md`）を作るSkill。
+
+- Phase 1（分析）では**実装せず**、ルートに `refactor-instructions.md` を出力して停止
+- 技術的負債を「根拠・影響・リスク・改善案・検証方法・実装可否」付きで整理
+- ユーザーが承認してから Phase 2（実行）に進む
+- 大きな設計変更は勝手に実装せず「提案のみ」に分類
+
 ### @eijient-setup
 
 新しいプロジェクトや新しいマシンの初期セットアップSkill。
@@ -33,11 +42,34 @@ Playwright MCPを使ってブラウザを直接操作し、E2Eテストを実行
 
 ## インストール
 
+Skillは `~/.claude/skills/` の **直下に各Skillフォルダがある** 必要があります
+（`~/.claude/skills/eijient/SKILL.md` のような階層）。
+リポジトリをそのまま clone すると階層が1つ深くなり認識されないため、付属の `install.sh` でコピーします。
+
 ```bash
-git clone https://github.com/Eiji1202/eijient.git ~/.claude/skills/
+# 任意の場所にリポジトリを取得
+git clone https://github.com/Eiji1202/eijient.git
+cd eijient
+
+# 4つのSkillを ~/.claude/skills/ 直下にインストール（既存は上書き更新）
+./install.sh
 ```
 
-これだけで `@eijient` と `@eijient-setup` が使えるようになります。
+これで `@eijient` / `@eijient-e2e` / `@eijient-refacta` / `@eijient-setup` が使えるようになります。
+Claude Code を再起動すると反映されます。
+
+### 更新・確認
+
+```bash
+# リポジトリを更新してから再インストール（上書き）
+git pull && ./install.sh
+
+# 何がコピーされるか確認だけする
+./install.sh --dry-run
+
+# コピー先を変えたい場合
+SKILLS_DIR=/path/to/skills ./install.sh
+```
 
 ## 使い方
 
@@ -64,6 +96,19 @@ claude
 
 ```bash
 @eijient ログイン機能を実装してください
+```
+
+### リファクタリング（分析 → 承認 → 実行）
+
+```bash
+# 分析して指示書を作成（実装はせず承認待ち）
+@eijient-refacta このプロジェクトのリファクタ計画を立てて
+
+# 分析だけして終わる
+@eijient-refacta --analyze-only リファクタ指示書だけ作って
+
+# 承認後、既存の指示書から実行
+@eijient-refacta --execute
 ```
 
 ### @eijient オプション

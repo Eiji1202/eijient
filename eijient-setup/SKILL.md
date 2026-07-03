@@ -38,18 +38,15 @@ description: >
       "Bash(npm run:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)",
       "Bash(gh issue create:*)",
-      "Bash(gh pr create:*)",
-      "Read",
-      "Write",
-      "Edit"
+      "Bash(gh pr create:*)"
     ]
   }
 }
 ```
 
 **注意：** 既存の設定がある場合は上書きせず、不足しているキーだけをマージする。
+**注意：** `git push` はグローバルでは ask のままにする。夜間の無人運用をするプロジェクトのみ、そのプロジェクトの `.claude/settings.local.json` で allow する。
 
 ### Step 2: 依存ツールの確認
 
@@ -156,16 +153,14 @@ claude mcp add playwright npx @playwright/mcp@latest
 
 ## 開発ルール
 
-- コードのコメントは日本語
+- グローバル CLAUDE.md の「個人の嗜好」に従う（コメント日本語・変数名英語・コミットは `type: 説明`）
 - ターミナルのログ出力は日本語
-- 変数名・関数名は英語
-- コミットメッセージは英語（例: feat: add login feature）
 
 ## 開発フロー
 
-- 実装前にGitHub Issueを作成する
-- ブランチ名: feature/issue-{番号}-{説明}
-- 実装完了後にPRを作成してユーザーに報告・停止
+- Issue駆動のプロジェクトでは実装前にGitHub Issueを作成する
+- ブランチ名: feat/issue-{番号}-{説明}（Issueがない場合は feat/{説明}）
+- PR作成・pushは明示的に依頼されたときのみ。作成後はユーザーに報告・停止
 - マージはユーザーが行う（自分でマージしない）
 
 {@eijientを使う場合のみ以下のセクションを追加}

@@ -2,9 +2,9 @@
 name: eijient-e2e
 description: >
   Playwright MCPを使ってブラウザを直接操作し、E2Eテストを実行するSkill。
-  「E2Eテストして」「動作確認して」「ブラウザで確認して」「テストを実行して」のように
-  動作検証・テスト実行を依頼されたときに使う。テストコード不要でその場でブラウザを操作し、
-  必要なら操作内容をPlaywrightテストコード（.spec.ts）として保存することもできる。
+  テストコード不要でその場でブラウザを操作し、操作内容をPlaywrightテストコード（.spec.ts）
+  として保存できるのが独自価値。@eijient-e2e と明示されたときのみ起動する。
+  単発のブラウザ動作確認は claude-in-chrome / gstack browse を優先する。
 ---
 
 # eijient-e2e Skill

@@ -11,6 +11,9 @@ Planner (opus) + Worker 1名
 | planner | opus | 設計・レビュー・統合 |
 | fullstack-dev | sonnet | 実装全般 |
 
+検証はチームを増やさず、実装完了後に**チーム外の単発検証サブエージェント**
+（Agent tool・まっさらなコンテキスト）に verifier テンプレートで依頼する。
+
 **適用例:**
 - バグ修正
 - 単一コンポーネントの追加
@@ -22,7 +25,7 @@ Planner (opus) + Worker 1名
 ## medium-frontend: フロントエンド中心の新機能
 
 ```
-Planner (opus) + Worker 2名
+Planner (opus) + Worker 2名 + verifier
 ```
 
 | 役割 | モデル | 担当ファイル |
@@ -30,6 +33,7 @@ Planner (opus) + Worker 2名
 | planner | opus | 設計・調整・統合 |
 | frontend-dev | sonnet | `src/app/**`, `src/components/**` |
 | tester | sonnet | `tests/**`, `__tests__/**` |
+| verifier | sonnet | 検証のみ（ファイル編集なし） |
 
 **適用例:**
 - 新画面の追加
@@ -41,7 +45,7 @@ Planner (opus) + Worker 2名
 ## medium-fullstack: フルスタック新機能
 
 ```
-Planner (opus) + Worker 3名
+Planner (opus) + Worker 3名 + verifier
 ```
 
 | 役割 | モデル | 担当ファイル |
@@ -50,6 +54,7 @@ Planner (opus) + Worker 3名
 | frontend-dev | sonnet | `src/app/**`, `src/components/**` |
 | backend-dev | sonnet | `src/api/**`, `src/lib/**`, `src/agents/**` |
 | tester | sonnet | `tests/**`, `__tests__/**` |
+| verifier | sonnet | 検証のみ（ファイル編集なし） |
 
 **適用例:**
 - 認証機能の実装
@@ -61,7 +66,7 @@ Planner (opus) + Worker 3名
 ## large-feature: 大規模新機能・複数機能
 
 ```
-Planner (opus) + Worker 4名
+Planner (opus) + Worker 4名 + verifier
 ```
 
 | 役割 | モデル | 担当ファイル |
@@ -71,6 +76,7 @@ Planner (opus) + Worker 4名
 | backend-dev | sonnet | `src/api/**`, `src/lib/**` |
 | db-dev | sonnet | `src/db/**`, `migrations/**`, `schema/**` |
 | tester | sonnet | `tests/**`, `__tests__/**`, `e2e/**` |
+| verifier | sonnet | 検証のみ（ファイル編集なし） |
 
 **適用例:**
 - 決済システムの実装
@@ -82,7 +88,7 @@ Planner (opus) + Worker 4名
 ## large-refactor: 大規模リファクタ
 
 ```
-Planner (opus) + Worker 4〜5名
+Planner (opus) + Worker 4〜5名 + verifier
 ```
 
 | 役割 | モデル | 担当ファイル |
@@ -92,6 +98,7 @@ Planner (opus) + Worker 4〜5名
 | backend-dev | sonnet | バックエンド担当ファイル |
 | db-dev | sonnet | DB・マイグレーション担当 |
 | reviewer | sonnet | コードレビュー・品質チェック |
+| verifier | sonnet | 動作検証（テスト・ビルド実行） |
 | tester | sonnet | テスト全般（必要に応じて追加） |
 
 **適用例:**

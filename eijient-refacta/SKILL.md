@@ -44,6 +44,10 @@ git log --oneline -30
 未コミットの変更がある場合は、その内容を記録する。Phase 2 で自分の変更と混ぜないために重要。
 git log からは「直近チームが何を進めているか」（移行・強化・削除のパターン）を読み取る。後の横展開漏れ検出に使う。
 
+既存の `refactor-instructions.md`（過去の実行の指示書）があれば読み、前回の Debt Map 各項目の
+顛末（実施済み・却下・未着手）を引き継ぐ。実施済みの再検出・却下済み提案の再提案はせず、
+却下された項目は理由つきで Out-of-scope Items に残す。
+
 ### Step 2: プロジェクトの読み込み
 
 存在するものを **すべて読む**。推測で飛ばさない。少なくとも以下を確認する：
@@ -269,6 +273,9 @@ Phase 2: {...}
 
 # 既存の指示書からリファクタを実行する
 @eijient-refacta --execute
+
+# 実行フェーズを /goal で完遂まで回す（Verification Requirements が決定論的な停止条件になる）
+/goal refactor-instructions.md の全フェーズを完遂する。Verification Requirements の全コマンドが PASS したら停止。5周で打ち切り
 ```
 
 ---

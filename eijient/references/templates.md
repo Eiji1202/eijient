@@ -78,6 +78,10 @@ Planner (opus) + Worker 4名 + verifier
 | tester | sonnet | `tests/**`, `__tests__/**`, `e2e/**` |
 | verifier | sonnet | 検証のみ（ファイル編集なし） |
 
+**設計ゲート:** 計画フェーズでは Worker 着手前に、チーム外の単発 design-reviewer サブエージェント
+（まっさらなコンテキスト・`prompts.md` のテンプレート）に設計の検証を依頼する。
+small の verifier と同じく常駐させない（計画フェーズ後に遊ぶ teammate を作らない）。
+
 **適用例:**
 - 決済システムの実装
 - ユーザー管理システム
@@ -100,6 +104,8 @@ Planner (opus) + Worker 4〜5名 + verifier
 | reviewer | sonnet | コードレビュー・品質チェック |
 | verifier | sonnet | 動作検証（テスト・ビルド実行） |
 | tester | sonnet | テスト全般（必要に応じて追加） |
+
+**設計ゲート:** large-feature と同様、計画フェーズで単発 design-reviewer に設計を検証させる。
 
 **適用例:**
 - アーキテクチャ変更
